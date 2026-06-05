@@ -136,3 +136,4 @@ C:\Users\User\OneDrive\Documents\Visual Studio 2022\OrderManagement\OrderApi\obj
 C:\Users\User\OneDrive\Documents\Visual Studio 2022\OrderManagement\OrderApi\obj\Debug\net8.0\OrderApi.pdb
 C:\Users\User\OneDrive\Documents\Visual Studio 2022\OrderManagement\OrderApi\obj\Debug\net8.0\OrderApi.genruntimeconfig.cache
 C:\Users\User\OneDrive\Documents\Visual Studio 2022\OrderManagement\OrderApi\obj\Debug\net8.0\ref\OrderApi.dll
+C:\Users\User\OneDrive\Documents\Visual Studio 2022\OrderManagement\OrderApi\obj\Debug\net8.0\OrderApi.sourcelink.json
