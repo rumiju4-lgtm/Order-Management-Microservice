@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using OrderApi.Data;
 using OrderApi.Dtos;
@@ -9,7 +10,7 @@ namespace OrderApi.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize] // All endpoints require authentication
+[Authorize]
 public class OrdersController : ControllerBase
 {
     private readonly OrderDbContext _context;
@@ -19,39 +20,26 @@ public class OrdersController : ControllerBase
         _context = context;
     }
 
-    // [HttpPost]
-    // public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDto dto)
-    // {
-    //     if (!ModelState.IsValid)
-    //         return BadRequest(ModelState);
-
-    //     var order = new Order
-    //     {
-    //         ProductName = dto.ProductName,
-    //         Quantity = dto.Quantity,
-    //         Price = dto.Price,
-    //         OrderDate = DateTime.UtcNow
-    //     };
-
-    //     _context.Orders.Add(order);
-    //     await _context.SaveChangesAsync();
-
-    //     return CreatedAtAction(nameof(CreateOrder), new { id = order.Id }, order);
-    // }
-    
     // GET: api/orders
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Order>>> GetOrders()
     {
-        return await _context.Orders.ToListAsync();
+        // Execute stored procedure usp_GetOrders
+        var orders = await _context.Orders
+            .FromSqlRaw("EXEC usp_GetOrders")
+            .ToListAsync();
+        return orders;
     }
 
     // GET: api/orders/{id}
     [HttpGet("{id}")]
     public async Task<ActionResult<Order>> GetOrder(int id)
     {
-        var order = await _context.Orders.FindAsync(id);
+        var orders = await _context.Orders
+            .FromSqlInterpolated($"EXEC usp_GetOrderById @Id = {id}")
+            .ToListAsync();
 
+        var order = orders.FirstOrDefault();
         if (order == null)
             return NotFound();
 
@@ -65,18 +53,29 @@ public class OrdersController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var order = new Order
+        // Output parameter to capture new order ID
+        var newOrderIdParam = new SqlParameter("@NewOrderId", System.Data.SqlDbType.Int)
         {
-            ProductName = dto.ProductName,
-            Quantity = dto.Quantity,
-            Price = dto.Price,
-            OrderDate = DateTime.UtcNow
+            Direction = System.Data.ParameterDirection.Output
         };
 
-        _context.Orders.Add(order);
-        await _context.SaveChangesAsync();
+        // Execute usp_CreateOrder
+        await _context.Database.ExecuteSqlRawAsync(
+            "EXEC usp_CreateOrder @ProductName, @Quantity, @Price, @NewOrderId OUTPUT",
+            new SqlParameter("@ProductName", dto.ProductName),
+            new SqlParameter("@Quantity", dto.Quantity),
+            new SqlParameter("@Price", dto.Price),
+            newOrderIdParam);
 
-        return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, order);
+        int newOrderId = (int)newOrderIdParam.Value;
+
+        // Retrieve the newly created order using the GetById stored procedure
+        var order = await _context.Orders
+            .FromSqlInterpolated($"EXEC usp_GetOrderById @Id = {newOrderId}")
+            .ToListAsync()
+            .ContinueWith(t => t.Result.FirstOrDefault());
+
+        return CreatedAtAction(nameof(GetOrder), new { id = newOrderId }, order);
     }
 
     // PUT: api/orders/{id}
@@ -86,32 +85,32 @@ public class OrdersController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var order = await _context.Orders.FindAsync(id);
-        if (order == null)
+        // Check if order exists (optional but helpful for 404)
+        var exists = await _context.Orders.AnyAsync(o => o.Id == id);
+        if (!exists)
             return NotFound();
 
-        order.ProductName = dto.ProductName;
-        order.Quantity = dto.Quantity;
-        order.Price = dto.Price;
-        // OrderDate typically remains unchanged; if you want to update it, uncomment the next line
-        // order.OrderDate = DateTime.UtcNow;
+        await _context.Database.ExecuteSqlRawAsync(
+            "EXEC usp_UpdateOrder @Id, @ProductName, @Quantity, @Price",
+            new SqlParameter("@Id", id),
+            new SqlParameter("@ProductName", dto.ProductName),
+            new SqlParameter("@Quantity", dto.Quantity),
+            new SqlParameter("@Price", dto.Price));
 
-        _context.Entry(order).State = EntityState.Modified;
-        await _context.SaveChangesAsync();
-
-        return NoContent(); // 204 – standard for successful updates
+        return NoContent();
     }
 
     // DELETE: api/orders/{id}
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteOrder(int id)
     {
-        var order = await _context.Orders.FindAsync(id);
-        if (order == null)
+        var exists = await _context.Orders.AnyAsync(o => o.Id == id);
+        if (!exists)
             return NotFound();
 
-        _context.Orders.Remove(order);
-        await _context.SaveChangesAsync();
+        await _context.Database.ExecuteSqlRawAsync(
+            "EXEC usp_DeleteOrder @Id",
+            new SqlParameter("@Id", id));
 
         return NoContent();
     }
