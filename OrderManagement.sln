@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrderApi", "OrderApi\OrderApi.csproj", "{A9C19946-C1B0-4E4F-B6E9-0C4D4C4A7DAB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiGateway", "ApiGateway\ApiGateway.csproj", "{D6E3EDA9-C991-41F8-BA1C-374CB61C4C9D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A9C19946-C1B0-4E4F-B6E9-0C4D4C4A7DAB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9C19946-C1B0-4E4F-B6E9-0C4D4C4A7DAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9C19946-C1B0-4E4F-B6E9-0C4D4C4A7DAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9C19946-C1B0-4E4F-B6E9-0C4D4C4A7DAB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D6E3EDA9-C991-41F8-BA1C-374CB61C4C9D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D6E3EDA9-C991-41F8-BA1C-374CB61C4C9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D6E3EDA9-C991-41F8-BA1C-374CB61C4C9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D6E3EDA9-C991-41F8-BA1C-374CB61C4C9D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
